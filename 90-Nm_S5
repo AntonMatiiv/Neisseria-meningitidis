@@ -1,0 +1,46 @@
+fastqc -o. 90-Nm_S5_L001_R1_001.fastq.gz  90-Nm_S5_L001_R2_001.fastq.gz
+
+java -jar /usr/share/java/trimmomatic-0.36.jar PE -phred33 90-Nm_S5_L001_R1_001.fastq.gz 90-Nm_S5_L001_R2_001.fastq.gz output_forward_paired_30.fq.gz output_forward_unpaired_30.fq.gz output_reverse_paired_30.fq.gz output_reverse_unpaired_30.fq.gz ILLUMINACLIP:TruSeq3-PE.fa:2:30:10 LEADING:30 TRAILING:30 SLIDINGWINDOW:10:30 MINLEN:30
+
+fastqc -o. output_forward_paired_30.fq.gz output_reverse_paired_30.fq.gz
+
+bwa mem ~/Neisseria_meningitidis/NM_102018/sequence.fasta output_forward_paired_30.fq.gz output_reverse_paired_30.fq.gz > alignment_90-Nm_S5.sam
+
+samtools view -S -b alignment_90-Nm_S5.sam > alignment_90-Nm_S5.bam
+
+samtools flagstat alignment_90-Nm_S5.bam
+1282307 + 0 in total (QC-passed reads + QC-failed reads)
+0 + 0 secondary
+1763 + 0 supplementary
+0 + 0 duplicates
+1279849 + 0 mapped (99.81% : N/A)
+1280544 + 0 paired in sequencing
+640272 + 0 read1
+640272 + 0 read2
+1273334 + 0 properly paired (99.44% : N/A)
+1277524 + 0 with itself and mate mapped
+562 + 0 singletons (0.04% : N/A)
+0 + 0 with mate mapped to a different chr
+0 + 0 with mate mapped to a different chr (mapQ>=5)
+
+samtools sort alignment_90-Nm_S5.bam -o alignment_90-Nm_S5_sorted.bam
+
+samtools index alignment_90-Nm_S5_sorted.bam
+
+samtools mpileup -f ~/Neisseria_meningitidis/NM_102018/sequence.fasta alignment_90-Nm_S5_sorted.bam > 90-Nm_S5.mpileup
+
+java -jar /home/anton/VarScan.v2.4.0.jar  mpileup2snp 90-Nm_S5.mpileup --min-var-freq 0.95 --variants --output-vcf 1 > VarScan_90-Nm_S5.vcf
+Only SNPs will be reported
+Warning: No p-value threshold provided, so p-values will not be calculated
+Min coverage:	8
+Min reads2:	2
+Min var freq:	0.95
+Min avg qual:	15
+P-value thresh:	0.01
+Reading input from 90-Nm_S5.mpileup
+2173371 bases in pileup file
+1034 variant positions (1019 SNP, 15 indel)
+91 were failed by the strand-filter
+931 variant positions reported (931 SNP, 0 indel)
+
+
